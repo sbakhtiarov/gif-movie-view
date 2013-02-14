@@ -1,0 +1,57 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res/com.basv.gifmoviewview"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true" >
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFFFF"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        tools:context=".MainActivity" >
+        <com.basv.gifmoviewview.widget.GifMovieView
+            android:id="@+id/gif1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onGifClick" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+            <com.basv.gifmoviewview.widget.GifMovieView
+                android:id="@+id/gif2"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="onGifClick"
+                custom:gif="@drawable/gif_heart" />
+            <com.basv.gifmoviewview.widget.GifMovieView
+                android:id="@+id/gif3"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="onGifClick"
+                custom:gif="@drawable/gif_heart" />
+            <com.basv.gifmoviewview.widget.GifMovieView
+                android:id="@+id/gif4"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="onGifClick"
+                custom:gif="@drawable/gif_heart" />
+            <com.basv.gifmoviewview.widget.GifMovieView
+                android:id="@+id/gif5"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="onGifClick"
+                custom:gif="@drawable/gif_heart" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
