@@ -25,12 +25,14 @@ import com.basv.gifmoviewview.R;
 
 public class GifMovieView extends View {
 
+	private static final int DEFAULT_MOVIEW_DURATION = 1000;
+
 	private int mMovieResourceId;
 	private Movie mMovie;
 
 	private long mMovieStart;
 	private int mCurrentAnimationTime = 0;
-
+	
 	/**
 	 * Position for drawing animation frames in the center of the view.
 	 */
@@ -49,6 +51,7 @@ public class GifMovieView extends View {
 	private int mMeasuredMovieHeight;
 
 	private volatile boolean mPaused = false;
+	private boolean mVisible = true;
 
 	public GifMovieView(Context context) {
 		this(context, null);
@@ -186,6 +189,8 @@ public class GifMovieView extends View {
 		 */
 		mLeft = (getWidth() - mMeasuredMovieWidth) / 2f;
 		mTop = (getHeight() - mMeasuredMovieHeight) / 2f;
+		
+		mVisible = getVisibility() == View.VISIBLE;
 	}
 
 	@Override
@@ -194,9 +199,26 @@ public class GifMovieView extends View {
 			if (!mPaused) {
 				updateAnimationTime();
 				drawMovieFrame(canvas);
-				invalidate();
+				invalidateView();
 			} else {
 				drawMovieFrame(canvas);
+			}
+		}
+	}
+	
+	/**
+	 * Invalidates view only if it is visible.
+	 * <br>
+	 * {@link #postInvalidateOnAnimation()} is used for Jelly Bean and higher.
+	 * 
+	 */
+	@SuppressLint("NewApi")
+	private void invalidateView() {
+		if(mVisible) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+				postInvalidateOnAnimation();
+			} else {
+				invalidate();
 			}
 		}
 	}
@@ -214,7 +236,7 @@ public class GifMovieView extends View {
 		int dur = mMovie.duration();
 
 		if (dur == 0) {
-			dur = 1000;
+			dur = DEFAULT_MOVIEW_DURATION;
 		}
 
 		mCurrentAnimationTime = (int) ((now - mMovieStart) % dur);
@@ -231,5 +253,28 @@ public class GifMovieView extends View {
 		canvas.scale(mScale, mScale);
 		mMovie.draw(canvas, mLeft / mScale, mTop / mScale);
 		canvas.restore();
+	}
+	
+	@SuppressLint("NewApi")
+	@Override
+	public void onScreenStateChanged(int screenState) {
+		super.onScreenStateChanged(screenState);
+		mVisible = screenState == SCREEN_STATE_ON;
+		invalidateView();
+	}
+	
+	@SuppressLint("NewApi")
+	@Override
+	protected void onVisibilityChanged(View changedView, int visibility) {
+		super.onVisibilityChanged(changedView, visibility);
+		mVisible = visibility == View.VISIBLE;
+		invalidateView();
+	}
+	
+	@Override
+	protected void onWindowVisibilityChanged(int visibility) {
+		super.onWindowVisibilityChanged(visibility);
+		mVisible = visibility == View.VISIBLE;
+		invalidateView();
 	}
 }
