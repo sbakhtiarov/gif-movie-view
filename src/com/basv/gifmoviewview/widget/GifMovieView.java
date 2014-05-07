@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Movie;
+import android.graphics.Paint;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
@@ -32,6 +33,16 @@ public class GifMovieView extends View {
 
 	private long mMovieStart;
 	private int mCurrentAnimationTime = 0;
+
+	/**
+	 * Custom alpha mechanism, View's setAlpha doesn't work on all API levels. I
+	 * keep the float value because the int has to be rounded,
+	 * {@link #getAlpha() would be inaccurate if I wouldn't. mPaint is used for
+	 * drawing alpha.
+	 */
+	private int mAlpha = 255;
+	private float mAlphaFloat = 1.0f;
+	private Paint mPaint = new Paint();
 	
 	/**
 	 * Position for drawing animation frames in the center of the view.
@@ -89,6 +100,13 @@ public class GifMovieView extends View {
 		if (mMovieResourceId != -1) {
 			mMovie = Movie.decodeStream(getResources().openRawResource(mMovieResourceId));
 		}
+
+		final TypedArray defaultAttributeArray = context.obtainStyledAttributes(attrs, new int[] {android.R.attr.alpha}, defStyle, R.style.Widget_GifMoviewView);
+		
+		mAlphaFloat = defaultAttributeArray.getFloat(0, 1);
+		mAlpha = Math.round(mAlphaFloat*255);
+		
+		defaultAttributeArray.recycle();
 	}
 
 	public void setMovieResource(int movieResId) {
@@ -109,6 +127,19 @@ public class GifMovieView extends View {
 	public void setMovieTime(int time) {
 		mCurrentAnimationTime = time;
 		invalidate();
+	}
+
+	@Override
+	public void setAlpha(float alpha) {
+		mAlphaFloat = alpha;
+		mAlpha = Math.round(alpha*255);
+		
+		invalidate();
+	}
+
+	@Override
+	public float getAlpha() {
+		return mAlphaFloat;
 	}
 
 	public void setPaused(boolean paused) {
@@ -251,7 +282,8 @@ public class GifMovieView extends View {
 
 		canvas.save(Canvas.MATRIX_SAVE_FLAG);
 		canvas.scale(mScale, mScale);
-		mMovie.draw(canvas, mLeft / mScale, mTop / mScale);
+		mPaint.setAlpha(mAlpha);
+		mMovie.draw(canvas, mLeft / mScale, mTop / mScale, mPaint);
 		canvas.restore();
 	}
 	
