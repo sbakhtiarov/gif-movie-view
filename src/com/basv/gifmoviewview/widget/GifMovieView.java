@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Movie;
+import android.graphics.Paint;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
@@ -32,6 +33,13 @@ public class GifMovieView extends View {
 
 	private long mMovieStart;
 	private int mCurrentAnimationTime = 0;
+
+	/**
+	 * Custom alpha mechanism, View's setAlpha doesn't work on all API levels.
+	 * mPaint is used for drawing alpha.
+	 */
+	private float mAlpha = 1.0f;
+	private Paint mPaint;
 	
 	/**
 	 * Position for drawing animation frames in the center of the view.
@@ -63,7 +71,6 @@ public class GifMovieView extends View {
 
 	public GifMovieView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-
 		setViewAttributes(context, attrs, defStyle);
 	}
 
@@ -78,17 +85,25 @@ public class GifMovieView extends View {
 			setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 		}
 
-		final TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.GifMoviewView, defStyle,
+		final TypedArray customAttributeArray = context.obtainStyledAttributes(attrs, R.styleable.GifMoviewView, defStyle,
 				R.style.Widget_GifMoviewView);
 
-		mMovieResourceId = array.getResourceId(R.styleable.GifMoviewView_gif, -1);
-		mPaused = array.getBoolean(R.styleable.GifMoviewView_paused, false);
+		mMovieResourceId = customAttributeArray.getResourceId(R.styleable.GifMoviewView_gif, -1);
+		mPaused = customAttributeArray.getBoolean(R.styleable.GifMoviewView_paused, false);
 
-		array.recycle();
+		customAttributeArray.recycle();
 
 		if (mMovieResourceId != -1) {
 			mMovie = Movie.decodeStream(getResources().openRawResource(mMovieResourceId));
 		}
+
+		final TypedArray defaultAttributeArray = context.obtainStyledAttributes(attrs, new int[] {android.R.attr.alpha}, defStyle, R.style.Widget_GifMoviewView);
+		
+		mAlpha = defaultAttributeArray.getFloat(0, 1);
+		mPaint = new Paint();
+		mPaint.setAlpha(Math.round(mAlpha*255));
+		
+		defaultAttributeArray.recycle();
 	}
 
 	public void setMovieResource(int movieResId) {
@@ -109,6 +124,21 @@ public class GifMovieView extends View {
 	public void setMovieTime(int time) {
 		mCurrentAnimationTime = time;
 		invalidate();
+	}
+
+	@Override
+	public void setAlpha(float alpha) {
+		mAlpha = alpha;
+		if(mPaint == null) {
+			mPaint = new Paint();
+		}
+		mPaint.setAlpha(Math.round(alpha*255));
+		invalidate();
+	}
+
+	@Override
+	public float getAlpha() {
+		return mAlpha;
 	}
 
 	public void setPaused(boolean paused) {
@@ -251,7 +281,12 @@ public class GifMovieView extends View {
 
 		canvas.save(Canvas.MATRIX_SAVE_FLAG);
 		canvas.scale(mScale, mScale);
-		mMovie.draw(canvas, mLeft / mScale, mTop / mScale);
+		if(mPaint != null) {
+			mMovie.draw(canvas, mLeft / mScale, mTop / mScale, mPaint);
+		}
+		else {
+			mMovie.draw(canvas, mLeft / mScale, mTop / mScale);
+		}
 		canvas.restore();
 	}
 	
