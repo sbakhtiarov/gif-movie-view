@@ -35,14 +35,11 @@ public class GifMovieView extends View {
 	private int mCurrentAnimationTime = 0;
 
 	/**
-	 * Custom alpha mechanism, View's setAlpha doesn't work on all API levels. I
-	 * keep the float value because the int has to be rounded,
-	 * {@link #getAlpha() would be inaccurate if I wouldn't. mPaint is used for
-	 * drawing alpha.
+	 * Custom alpha mechanism, View's setAlpha doesn't work on all API levels.
+	 * mPaint is used for drawing alpha.
 	 */
-	private int mAlpha = 255;
-	private float mAlphaFloat = 1.0f;
-	private Paint mPaint = new Paint();
+	private float mAlpha = 1.0f;
+	private Paint mPaint;
 	
 	/**
 	 * Position for drawing animation frames in the center of the view.
@@ -74,7 +71,6 @@ public class GifMovieView extends View {
 
 	public GifMovieView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-
 		setViewAttributes(context, attrs, defStyle);
 	}
 
@@ -89,13 +85,13 @@ public class GifMovieView extends View {
 			setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 		}
 
-		final TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.GifMoviewView, defStyle,
+		final TypedArray customAttributeArray = context.obtainStyledAttributes(attrs, R.styleable.GifMoviewView, defStyle,
 				R.style.Widget_GifMoviewView);
 
-		mMovieResourceId = array.getResourceId(R.styleable.GifMoviewView_gif, -1);
-		mPaused = array.getBoolean(R.styleable.GifMoviewView_paused, false);
+		mMovieResourceId = customAttributeArray.getResourceId(R.styleable.GifMoviewView_gif, -1);
+		mPaused = customAttributeArray.getBoolean(R.styleable.GifMoviewView_paused, false);
 
-		array.recycle();
+		customAttributeArray.recycle();
 
 		if (mMovieResourceId != -1) {
 			mMovie = Movie.decodeStream(getResources().openRawResource(mMovieResourceId));
@@ -103,8 +99,9 @@ public class GifMovieView extends View {
 
 		final TypedArray defaultAttributeArray = context.obtainStyledAttributes(attrs, new int[] {android.R.attr.alpha}, defStyle, R.style.Widget_GifMoviewView);
 		
-		mAlphaFloat = defaultAttributeArray.getFloat(0, 1);
-		mAlpha = Math.round(mAlphaFloat*255);
+		mAlpha = defaultAttributeArray.getFloat(0, 1);
+		mPaint = new Paint();
+		mPaint.setAlpha(Math.round(mAlpha*255));
 		
 		defaultAttributeArray.recycle();
 	}
@@ -131,15 +128,17 @@ public class GifMovieView extends View {
 
 	@Override
 	public void setAlpha(float alpha) {
-		mAlphaFloat = alpha;
-		mAlpha = Math.round(alpha*255);
-		
+		mAlpha = alpha;
+		if(mPaint == null) {
+			mPaint = new Paint();
+		}
+		mPaint.setAlpha(Math.round(alpha*255));
 		invalidate();
 	}
 
 	@Override
 	public float getAlpha() {
-		return mAlphaFloat;
+		return mAlpha;
 	}
 
 	public void setPaused(boolean paused) {
@@ -282,8 +281,12 @@ public class GifMovieView extends View {
 
 		canvas.save(Canvas.MATRIX_SAVE_FLAG);
 		canvas.scale(mScale, mScale);
-		mPaint.setAlpha(mAlpha);
-		mMovie.draw(canvas, mLeft / mScale, mTop / mScale, mPaint);
+		if(mPaint != null) {
+			mMovie.draw(canvas, mLeft / mScale, mTop / mScale, mPaint);
+		}
+		else {
+			mMovie.draw(canvas, mLeft / mScale, mTop / mScale);
+		}
 		canvas.restore();
 	}
 	
