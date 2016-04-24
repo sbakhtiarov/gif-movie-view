@@ -12,4 +12,4 @@ To show animated GIF in your application just add GifMovieView into your layout.
                 custom:gif="@drawable/my_animated_gif"/>
 
 
-You can set Movie object dynamically or as a resource ID and control animation playback.
+You can set Movie object dynamically or as a resource ID and control animation playback!
